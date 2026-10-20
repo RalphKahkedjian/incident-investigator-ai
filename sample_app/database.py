@@ -20,6 +20,8 @@ def connect_to_database(scenario: str = "normal"):
         )
 
     if scenario == "normal":
-        return True
+        raise DatabaseConnectionError(
+            "Database connection failed: invalid pool configuration"
+        )
 
     raise ValueError(f"Unknown database scenario: {scenario}")
