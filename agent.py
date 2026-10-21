@@ -7,6 +7,11 @@ from langchain.agents import create_agent
 
 from investigator.log_tools import read_logs, search_logs
 from investigator.code_tools import list_directory, read_file
+from investigator.git_tools import (
+    get_git_history,
+    get_commit_changes,
+    compare_commits
+)
 
 load_dotenv()
 
@@ -22,6 +27,15 @@ Follow these rules:
 4. Suggest possible solutions.
 5. Never invent evidence or claim certainty without proof.
 6. Clearly distinguish symptoms from verified root causes.
+
+When investigating a possible regression:
+1. Examine application logs to identify the failure.
+2. Inspect source code for relevant behavior.
+3. Check Git history for recent commits.
+4. Compare relevant commits to identify code changes.
+5. Cite the commit hash and changed file when explaining a regression.
+6. Distinguish verified causes from hypotheses.
+7. Never claim a commit caused a failure without supporting evidence.
 
 Format your answer with:
 - Problem
@@ -55,12 +69,33 @@ def read_application_file(filename:str)->str:
     """Read a python source file or log file from the sample application"""
     return read_file(filename)
 
+@tool
+def get_application_git_history() -> str:
+    """Retrieve recent Git commits from the application repository."""
+    return get_git_history()
+
+
+@tool
+def inspect_git_commit(commit_hash: str) -> str:
+    """Inspect the code changes introduced by a Git commit."""
+    return get_commit_changes(commit_hash)
+
+
+@tool
+def compare_git_commits(old_commit: str, new_commit: str) -> str:
+    """Compare two Git commits to identify changes that may have introduced bugs."""
+    return compare_commits(old_commit, new_commit)
+
+
 agent = create_agent(
     model=llm,
     tools=[read_application_logs,
            search_application_logs,
            list_application_directory,
-           read_application_file
+           read_application_file,
+           get_application_git_history,
+           inspect_git_commit,
+           compare_git_commits
           ],
     system_prompt=system_prompt
 )
