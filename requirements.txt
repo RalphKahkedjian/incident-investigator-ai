@@ -2,3 +2,4 @@ python-dotenv
 rich
 langchain
 langchain-google-genai
+pytest

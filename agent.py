@@ -13,6 +13,8 @@ from investigator.git_tools import (
     compare_commits
 )
 
+from investigator.schemas import InvestigationReport
+
 load_dotenv()
 
 system_prompt="""
@@ -97,7 +99,8 @@ agent = create_agent(
            inspect_git_commit,
            compare_git_commits
           ],
-    system_prompt=system_prompt
+    system_prompt=system_prompt,
+    response_format=InvestigationReport
 )
 
 if __name__ == "__main__":
@@ -110,15 +113,14 @@ if __name__ == "__main__":
         }]
     })
 
-    print(10*"=" + "INVESTIGATION REPORT" + 10*"=")
-
     for message in response['messages']:
-        print(f"Message type: {message.type}")
 
         if hasattr(message, "tool_calls") and message.tool_calls:
             for call in message.tool_calls:
                 print(f"Tool called: {call['name']}")
                 print(f"Args: {call['args']}")
-    
-    print(response["messages"][-1].text)
+
+    report = response["structured_response"]
+    print("\n" + 20*"=" + "INVESTIGATION REPORT" + 20*"=" + "\n")
+    print(report.model_dump_json(indent=2))
 
